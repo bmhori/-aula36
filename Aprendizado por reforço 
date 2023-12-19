@@ -1,0 +1,381 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/bmhori/-aula36/blob/main/Aprendizado%20por%20refor%C3%A7o%20\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Problema de Aprendizado por Reforço (RL) a Resolver:\n",
+        "\n",
+        "A **máquina/robô** precisa encontrar uma maneira de alcançar o **Objetivo** (Sala Número 5). A máquina iniciará aleatoriamente de qualquer sala.\n",
+        "\n",
+        "<img src=\"https://s3-whjr-curriculum-uploads.whjr.online/8c97608b-f644-411b-a619-bf2b5bb5cc84.PNG\" width= 400>\n",
+        "\n"
+      ],
+      "metadata": {
+        "id": "gbWq1YuSKHYr"
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Componentes do RL:\n",
+        "\n",
+        "* Ambiente\n",
+        "\n",
+        "<img src=\"https://s3-whjr-curriculum-uploads.whjr.online/af5a1d77-041a-4bba-be4e-ca26aea97771.png\" width= 300>\n",
+        "\n",
+        "* Agente\n",
+        "\n",
+        "<img src=\"https://s3-whjr-curriculum-uploads.whjr.online/fda2e793-0302-420c-981b-dbf32ecb1d12.png\" width= 200>\n",
+        "\n",
+        "* Estados\n",
+        "\n",
+        "> O agente/máquina pode estar em qualquer uma das 6 salas do salão (5 salas + 1 sala do objetivo). Portanto, há **6 estados possíveis**.\n",
+        "\n",
+        "\n",
+        "> <img src=\"https://s3-whjr-curriculum-uploads.whjr.online/8373d662-7b47-4bad-9504-3ecf790e2644.PNG\" width= 75>\n",
+        "\n",
+        "\n",
+        "* Ações\n",
+        "\n",
+        "> O agente/máquina pode decidir se mover para qualquer uma das 6 salas do salão (5 salas + 1 sala do objetivo). Portanto, também há **6 ações possíveis**.\n",
+        "\n",
+        "\n",
+        "> <img src=\"https://s3-whjr-curriculum-uploads.whjr.online/197a63c6-99ac-4d46-9026-bbc6321013b1.PNG\" width= 300>\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "* Recompensas\n",
+        "\n",
+        "> **Recompensas possíveis: -1, 0, 100**\n",
+        "\n",
+        "> <img src=\"https://s3-whjr-curriculum-uploads.whjr.online/d35adac2-7aef-42b3-a6f7-8c5b87393201.PNG\" width= 300>\n",
+        "\n",
+        "\n",
+        "\n",
+        "\n",
+        "* **Não pode se mover**: Se não houver um caminho direto de uma sala para outra, a recompensa será -1.\n",
+        "\n",
+        "* **Pode se mover**: Se a máquina puder se mover da sala atual (estado) para a próxima sala (ação), a recompensa será 0.\n",
+        "\n",
+        "* **Objetivo**: Se a máquina atingir o objetivo, então a recompensa será 100.\n"
+      ],
+      "metadata": {
+        "id": "UfO6LjShKUx0"
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Importe os Módulos"
+      ],
+      "metadata": {
+        "id": "IoIK1JeQKecl"
+      }
+    },
+    {
+      "cell_type": "code",
+      "execution_count": 1,
+      "metadata": {
+        "id": "WKZ1AbHZowja"
+      },
+      "outputs": [],
+      "source": [
+        "import numpy as np\n",
+        "import random"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Matriz de Recompensas\n",
+        "\n",
+        "> Clique no link da [Matriz de Recompensas](https://s3-whjr-prod-cocos-applet.whjr.online/Coding/other/simple-q/index.html?play-mode=2&appletConfig.i18n.currentLanguage=BR&appletConfig.i18n.enabled=true) para entender a alocação das recompensas.\n",
+        "\n",
+        "\n",
+        "> <img src=\"https://s3-whjr-curriculum-uploads.whjr.online/6572d83b-7d56-40bc-8ca4-733ba220d7c2.PNG\" width= 400>\n",
+        "\n",
+        "\n",
+        "* **Não pode se mover**: Se não houver um caminho direto de uma sala para outra, a recompensa será -1.\n",
+        "\n",
+        "* **Pode se mover**: Se a máquina puder se mover da sala atual (estado) para a próxima sala (ação), a recompensa será 0.\n",
+        "\n",
+        "* **Objetivo**: Se a máquina atingir o objetivo, então a recompensa será 100.\n",
+        "\n",
+        "> <img src=\"https://s3-whjr-curriculum-uploads.whjr.online/31a41959-623e-4275-9bba-3fca21015f6d.PNG\" width= 400>\n",
+        "\n",
+        "\n"
+      ],
+      "metadata": {
+        "id": "2aeQKNY4Ku9j"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "rewards = np.array([\n",
+        "    [-1, -1, -1, -1,  0,  -1],\n",
+        "    [-1, -1, -1,  0, -1, 100],\n",
+        "    [-1, -1, -1 , 0 ,-1 , -1],\n",
+        "    [-1,  0,  0 ,-1  ,-1 , -1],\n",
+        "    [0, -1, -1 , -1 ,-1 ,100],\n",
+        "    [-1, -1, -1, -1,  0, 100]\n",
+        "])"
+      ],
+      "metadata": {
+        "id": "6RjBxy7yo4fg"
+      },
+      "execution_count": 2,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Estado Inicial"
+      ],
+      "metadata": {
+        "id": "GTj7j-a6K3S_"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def set_initial_state():\n",
+        "    return np.random.randint(0, 6)"
+      ],
+      "metadata": {
+        "id": "S-Qe6w--o641"
+      },
+      "execution_count": 8,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "set_initial_state()"
+      ],
+      "metadata": {
+        "id": "tC0B10aQpGdd",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "ba1dfe32-25c2-4948-fd41-d2661dff48b2"
+      },
+      "execution_count": 9,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "2"
+            ]
+          },
+          "metadata": {},
+          "execution_count": 9
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## Obtenha a Ação"
+      ],
+      "metadata": {
+        "id": "Cv3ucAIxLPFu"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def get_action(current_state, reward_matrix):\n",
+        "    available_action = []\n",
+        "    print(\"reward_matrix\",\"\\n\",reward_matrix)\n",
+        "    for action in enumerate(reward_matrix[current_state]):\n",
+        "        if action[1]!= -1:\n",
+        "            available_action.append(action[0])\n",
+        "    choose_action = random.choice(available_action)\n",
+        "    print(\"A escolha aleatória da ação de\",available_action,\"é\", choose_action)\n",
+        "    return choose_action"
+      ],
+      "metadata": {
+        "id": "3D9SYz0CpBkk"
+      },
+      "execution_count": 11,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "#Chame a função get_action\n",
+        "current_state = 2\n",
+        "action = get_action(current_state, rewards)\n",
+        "print(action)"
+      ],
+      "metadata": {
+        "id": "-A5-F_41pOFu",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "2cb65c95-c388-43ac-9c7b-0e7388039438"
+      },
+      "execution_count": 13,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "reward_matrix \n",
+            " [[ -1  -1  -1  -1   0  -1]\n",
+            " [ -1  -1  -1   0  -1 100]\n",
+            " [ -1  -1  -1   0  -1  -1]\n",
+            " [ -1   0   0  -1  -1  -1]\n",
+            " [  0  -1  -1  -1  -1 100]\n",
+            " [ -1  -1  -1  -1   0 100]]\n",
+            "A escolha aleatória da ação de [3] é 3\n",
+            "3\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [],
+      "metadata": {
+        "id": "uYCPqCo5KC4x"
+      },
+      "execution_count": 6,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "#Chame a função get_action para o estado atual = 4\n",
+        "current_state = 4\n",
+        "action = get_action(current_state, rewards)\n",
+        "print(action)"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "zYh8r7YyaJCk",
+        "outputId": "afd5ef5d-7050-4965-9342-0767f3d45da9"
+      },
+      "execution_count": 17,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "reward_matrix \n",
+            " [[ -1  -1  -1  -1   0  -1]\n",
+            " [ -1  -1  -1   0  -1 100]\n",
+            " [ -1  -1  -1   0  -1  -1]\n",
+            " [ -1   0   0  -1  -1  -1]\n",
+            " [  0  -1  -1  -1  -1 100]\n",
+            " [ -1  -1  -1  -1   0 100]]\n",
+            "A escolha aleatória da ação de [0, 5] é 0\n",
+            "0\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "rewards1 = np.array([\n",
+        "    [-1, -1, -1, -1,  0,  -1],\n",
+        "    [-1, -1, -1,  0, -1, 100],\n",
+        "    [-1, -1, -1 , 0 ,-1 , -1],\n",
+        "    [-1,  1,  0 ,-1  ,-1 , -1],\n",
+        "    [0, -1, -1 , -1 ,-1 ,100],\n",
+        "    [-1, -1, -1, -1,  0, 100]\n",
+        "])"
+      ],
+      "metadata": {
+        "id": "wV1mnjPmpALk"
+      },
+      "execution_count": 24,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "def get_action_max(current_state, reward_matrix):\n",
+        "    available_actions = []\n",
+        "\n",
+        "    # Percorre as ações disponíveis no estado atual\n",
+        "    for action, reward in enumerate(reward_matrix[current_state]):\n",
+        "        if reward != -1:\n",
+        "            available_actions.append((action, reward))\n",
+        "\n",
+        "    if not available_actions:\n",
+        "        # Se não houver ações disponíveis, retorna None\n",
+        "        return None\n",
+        "\n",
+        "    # Escolhe a ação com a recompensa mais alta\n",
+        "    choose_action_max = max(available_actions, key=lambda x: x[1])[0]\n",
+        "\n",
+        "    print(\"A escolha da ação com base nos valores é:\", choose_action_max)\n",
+        "\n",
+        "    return choose_action_max\n"
+      ],
+      "metadata": {
+        "id": "Kw9g8Jn8o2Wm"
+      },
+      "execution_count": 28,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "current_state = 1\n",
+        "action = get_action_max(current_state, rewards)\n",
+        "print(\"Ação escolhida:\", action)"
+      ],
+      "metadata": {
+        "id": "1OK0NeVgpOG5",
+        "outputId": "69857291-0448-4bc0-f381-db91df75789e",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 29,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "A escolha da ação com base nos valores é: 5\n",
+            "Ação escolhida: 5\n"
+          ]
+        }
+      ]
+    }
+  ]
+}
